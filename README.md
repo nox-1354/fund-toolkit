@@ -41,6 +41,12 @@
 
 ## 快速开始
 
+### 快速安装入口
+
+```
+pip install git+https://github.com/nox-1354/fund-toolkit.git
+```
+
 ### 1. 安装
 
 ```bash
