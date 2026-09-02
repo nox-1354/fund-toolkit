@@ -1,5 +1,5 @@
 """
-SKILL_FUNDCOUNT.py - 基金全栈数据工具包 V1.3
+core.py - 基金全栈数据工具包 V1.3
 数据源优先级：直连天天基金 → Node.js本地服务 → 新浪 → akshare
 参考：https://kouchao.github.io/TiantianFundApi/
 """
@@ -2130,40 +2130,40 @@ class FundToolkit:
 
     # 决策层
     def suggest(self, risk_level: str, amount: float = 10000) -> str:
-        from SKILL_FUNDADVISOR import quick_suggestion
+        from fund_toolkit.advisor import quick_suggestion
         return quick_suggestion(risk_level, amount)
 
     def suggest_conservative(self, amount: float = 10000) -> str:
-        from SKILL_FUNDADVISOR import suggest_conservative
+        from fund_toolkit.advisor import suggest_conservative
         return suggest_conservative(amount)
 
     def suggest_balanced(self, amount: float = 10000) -> str:
-        from SKILL_FUNDADVISOR import suggest_balanced
+        from fund_toolkit.advisor import suggest_balanced
         return suggest_balanced(amount)
 
     def suggest_aggressive(self, amount: float = 10000) -> str:
-        from SKILL_FUNDADVISOR import suggest_aggressive
+        from fund_toolkit.advisor import suggest_aggressive
         return suggest_aggressive(amount)
 
     def recommend(self, risk_level: str, **kwargs) -> List:
-        from SKILL_FUNDADVISOR import recommend_funds, InvestorRisk
+        from fund_toolkit.advisor import recommend_funds, InvestorRisk
         return recommend_funds(InvestorRisk(risk_level.upper()), **kwargs)
 
     def build_portfolio(self, risk_level: str, fund_codes: List[str], **kwargs):
-        from SKILL_FUNDADVISOR import build_portfolio, InvestorRisk
+        from fund_toolkit.advisor import build_portfolio, InvestorRisk
         return build_portfolio(InvestorRisk(risk_level.upper()), fund_codes, **kwargs)
 
     def compare_risk(self, codes: List[str]) -> str:
-        from SKILL_FUNDADVISOR import compare_risk_levels
+        from fund_toolkit.advisor import compare_risk_levels
         return compare_risk_levels(codes)
 
     # 可视化层
     def generate_report(self, code: str, output_path: str = None) -> str:
-        from SKILL_FUNDCOUNT_VIS import generate_fund_html_report
+        from fund_toolkit.vis import generate_fund_html_report
         return generate_fund_html_report(code, output_path=output_path)
 
     def generate_compare_report(self, codes: List[str], output_path: str = None) -> str:
-        from SKILL_FUNDCOUNT_VIS import generate_funds_compare_html
+        from fund_toolkit.vis import generate_funds_compare_html
         return generate_funds_compare_html(codes, output_path=output_path) 
 
     # 工具
