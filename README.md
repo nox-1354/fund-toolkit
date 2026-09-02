@@ -13,7 +13,7 @@
   <a href="https://github.com/nox-1354/fund-toolkit"><img src="https://img.shields.io/github/stars/nox-1354/fund-toolkit?style=social" alt="Stars"></a>
 </p>
 
-> ⚠️ **请仔细阅读本文档后再使用**
+> 📚 **请仔细阅读本文档后再使用**
 
 ---
 
