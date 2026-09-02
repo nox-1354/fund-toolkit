@@ -13,9 +13,11 @@
   <a href="https://github.com/nox-1354/fund-toolkit"><img src="https://img.shields.io/github/stars/nox-1354/fund-toolkit?style=social" alt="Stars"></a>
 </p>
 
+> ⚠️ **请仔细阅读本文档后再使用**
+
 ---
 
-## 一、功能概览
+## 功能概览
 
 <div align="center">
 
@@ -37,9 +39,9 @@
 
 ---
 
-## 二、快速开始
+## 快速开始
 
-### 1.安装
+### 1. 安装
 
 ```bash
 # 基础安装（搜索 + 净值 + 持仓）
@@ -49,7 +51,7 @@ pip install requests pandas numpy beautifulsoup4
 pip install akshare
 ```
 
-### 2.启动 Node.js 服务（可选，推荐本地运行时启动）
+### 2. 启动 Node.js 服务（可选）
 
 公司列表、净值排行、主题榜单需要 Node.js 服务：
 
@@ -60,7 +62,7 @@ npm install
 npm start  # 默认 localhost:3000
 ```
 
-### 3.基础用法
+### 3. 基础用法
 
 ```python
 from fund_toolkit import FundToolkit
@@ -96,7 +98,7 @@ tk.generate_report("110011", output_path="./fund_report.html")
 
 ---
 
-## 三、API 参考
+## API 参考
 
 所有功能通过 `FundToolkit` 类统一调用：
 
@@ -127,7 +129,7 @@ tk.generate_report("110011", output_path="./fund_report.html")
 
 </div>
 
-### 1.定投参数详解
+### 定投参数详解
 
 ```python
 tk.drip(
@@ -142,7 +144,7 @@ tk.drip(
 )
 ```
 
-### 2.投资建议风险等级
+### 投资建议风险等级
 
 <div align="center">
 
@@ -158,7 +160,7 @@ tk.drip(
 
 ---
 
-## 四、使用场景示例
+## 使用场景示例
 
 ### 场景一：新基金快速调研
 
@@ -229,9 +231,9 @@ tk.generate_compare_report(
 
 ---
 
-## 五、依赖说明
+## 依赖说明
 
-### 1.基础依赖（必须安装）
+### 基础依赖（必须安装）
 
 <div align="center">
 
@@ -244,7 +246,7 @@ tk.generate_compare_report(
 
 </div>
 
-### 2.可选依赖
+### 可选依赖
 
 <div align="center">
 
@@ -254,7 +256,7 @@ tk.generate_compare_report(
 
 </div>
 
-### 3.Node.js 服务
+### Node.js 服务
 
 部分功能需要启动 Node.js 服务（[天天基金 API](https://github.com/kouchao/TiantianFundApi)）：
 
@@ -271,7 +273,7 @@ tk.generate_compare_report(
 
 ---
 
-## 六、项目结构
+## 项目结构
 
 ```
 fund-toolkit/
@@ -280,16 +282,21 @@ fund-toolkit/
 │   ├── core.py           # 核心功能（11层架构）
 │   ├── advisor.py        # 投资建议引擎（C1-C5）
 │   └── vis.py            # 可视化扩展（HTML报告）
+├── examples/             # 使用示例
+│   ├── basic_usage.py
+│   ├── investment_advice.py
+│   ├── fund_score.py
+│   └── drip_backtest.py
 ├── pyproject.toml        # pip 安装配置
 ├── requirements.txt      # 依赖列表
 ├── README.md             # 本文档
-├── SKILL.md              # Claude Skill 入口
+├── SKILL.md & SKILL_SIMPLE.md                 # Claude Skill 入口（调试中，暂不可用）
 └── LICENSE               # MIT 许可证
 ```
 
 ---
 
-## 七、致谢
+## 致谢
 
 本项目受以下开源项目/资料启发：
 
