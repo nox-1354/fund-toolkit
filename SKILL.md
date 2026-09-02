@@ -5,7 +5,7 @@ origin: custom
 version: 1.3.0
 ---
 
-# Fund Toolkit - 基金全栈数据工具包 V1.3（调试中）
+# Fund Toolkit - 基金全栈数据工具包 V1.3（调试中，暂无法使用）
 
 ## 何时激活
 
