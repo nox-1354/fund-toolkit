@@ -5,7 +5,7 @@ origin: custom
 version: 1.0.0-skill
 ---
 
-# Fund Toolkit - AI 可执行版
+# Fund Toolkit - AI 可执行版（调试中）
 
 纯 HTTP 直连天天基金，无需安装任何 Python 包（只需 `requests`），AI 可直接在对话中调用。
 
