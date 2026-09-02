@@ -2175,3 +2175,6 @@ class FundToolkit:
 
     def set_log_level(self, level: Union[str, int]) -> None:
         set_log_level(level)
+
+    def get_version(self) -> str:
+        return __version__
