@@ -1,0 +1,8 @@
+# 核心依赖（必须安装）
+requests>=2.28.0
+pandas>=1.5.0
+numpy>=1.24.0
+beautifulsoup4>=4.11.0
+
+# 可选依赖（完整功能需要 akshare）
+# pip install akshare>=1.12.0
