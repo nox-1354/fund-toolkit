@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Fund Toolkit基金工具包</h1>
+  <h1 align="center">Fund Toolkit</h1>
 </p>
 
 <p align="center">
@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8%2B-blue" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License"></a>
+  <a href="https://github.com/nox-1354/fund-toolkit"><img src="https://img.shields.io/badge/Status-Active-brightgreen" alt="Status"></a>
+  <a href="https://github.com/nox-1354/fund-toolkit"><img src="https://img.shields.io/github/stars/nox-1354/fund-toolkit?style=social" alt="Stars"></a>
 </p>
 
 ---
