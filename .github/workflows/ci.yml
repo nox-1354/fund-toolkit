@@ -52,7 +52,7 @@ jobs:
           print("3.8 语法检查通过")
           PY
 
-      - name: 版本号四处一致性
+      - name: 版本号五处一致性
         run: |
           python - <<'PY'
           import re, sys
