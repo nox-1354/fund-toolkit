@@ -1,5 +1,8 @@
 [build-system]
-requires = ["setuptools>=61"]
+# 下限 70.1：setuptools 从 70.1 起内置 bdist_wheel，构建时不再需要单独安装 wheel 包。
+# 更早的版本（61~70.0）在没装 wheel 的环境里会以
+# 「error: invalid command 'bdist_wheel'」失败。70.x 仍支持 Python 3.8。
+requires = ["setuptools>=70.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +11,12 @@ version = "2.0.0"
 description = "基金全栈数据工具包：搜索/净值/持仓/评分/筛选/相关性/定投回测/可视化，零第三方依赖"
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
+# 许可证用老式 table 写法，不要改成 license = "MIT"：
+#   SPDX 表达式（PEP 639）需要 setuptools >= 77，而 setuptools 77 起要求 Python >= 3.9，
+#   因此 Python 3.8 上永远装不到能解析它的 setuptools，构建会以
+#   「invalid pyproject.toml config: `project.license`」失败。
+#   实测 { text = "MIT" } 在 setuptools 75.3.0（3.8 上可用的最新版）和 84.0.0 上都能正常构建。
+license = { text = "MIT" }
 authors = [{ name = "NOX-1354", email = "nora1226even@163.com" }]
 keywords = ["fund", "finance", "investment", "基金", "投资", "定投", "skill"]
 classifiers = [
@@ -22,9 +30,8 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Topic :: Office/Business :: Financial :: Investment",
 ]
-# 注意：不要再加 "License :: OSI Approved :: MIT License" 分类器。
-# PEP 639 起许可证用上面的 license 表达式表示，二者同时出现会被 setuptools 直接拒绝：
-#   InvalidConfigError: License classifiers have been superseded by license expressions
+# 注意：不要再加 `License :: OSI Approved :: MIT License` 分类器——
+# 它与 license 字段重复，新版 setuptools 会直接报 InvalidConfigError 拒绝构建。
 
 # ★ 零第三方依赖：只用 Python 标准库。请不要在这里添加任何东西。
 dependencies = []
