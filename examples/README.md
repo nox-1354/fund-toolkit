@@ -1,101 +1,40 @@
 # 使用示例
 
-本目录包含 `fund-toolkit` 的典型使用场景，方便快速上手。
+本目录包含 `fund-toolkit` 的典型用法。
 
 ## 前提条件
 
-### 基础功能（搜索/净值/持仓/投资建议）
+**无需安装任何依赖**（Python 3.8+ 即可）。每个示例都自带路径引导，直接运行：
 
 ```bash
-pip install requests pandas numpy beautifulsoup4
+python examples/basic_usage.py
+python examples/fund_score.py
+python examples/drip_backtest.py
+python examples/investment_advice.py
+python examples/filter_and_correlate.py
 ```
 
-### 完整功能（评分/定投/相关性/可视化）
-
-```bash
-pip install akshare
-```
-
-### Node.js 服务（公司列表/净值排行/主题榜单）
-
-部分高级功能需要启动 Node.js 服务，非必须：
-
-```bash
-git clone https://github.com/kouchao/TiantianFundApi
-cd TiantianFundApi
-npm install
-npm start  # 默认 localhost:3000
-```
-
----
+如果你已经 `pip install .`，示例里的 `sys.path` 引导也不会产生副作用（先找到本地那份优先）。
 
 ## 示例列表
 
-| 文件 | 功能 | 依赖 |
+| 文件 | 功能 | 是否需要网络 |
 |------|------|------|
-| `basic_usage.py` | 搜索基金、查净值、看持仓 | 仅 requests |
-| `investment_advice.py` | 投资建议 C1-C5 风险匹配 | 仅 requests |
-| `fund_score.py` | 多基金评分对比 | akshare |
-| `drip_backtest.py` | 定投收益回测 | akshare |
+| `basic_usage.py` | 搜索、基本信息、历史净值（复权）、评分、持仓 | 是 |
+| `fund_score.py` | 多基金四维评分横向对比（覆盖 5 种基金类型） | 是 |
+| `drip_backtest.py` | 定投回测：不同金额/频率，含 XIRR 年化与一次性投入基准 | 是 |
+| `investment_advice.py` | C1-C5 投资建议，含 `max_risk` 档位收敛 | 是 |
+| `filter_and_correlate.py` | 排行、筛选、相关性矩阵、相似基金 | 是 |
 
----
+## 输出要点
 
-## 运行方式
+- **复权口径**：收益、回撤、波动率、相关性都基于复权净值（累计净值差分法，含分红再投资）。
+  分红日不会被算成暴跌。
+- **年化为真实口径**：按实际日历跨度年化；定投用 XIRR（货币加权），不是简单收益率外推。
+- **数据不足会说"数据不足"**：评分在净值不足时返回 `total=None` / `grade="数据不足"`，
+  不会用 0 值凑出一个看起来正常的分数。
 
-```bash
-# 进入项目目录
-cd fund-toolkit
+## 更完整的说明
 
-# 运行示例
-python examples/basic_usage.py
-python examples/investment_advice.py
-python examples/fund_score.py
-python examples/drip_backtest.py
-```
-
----
-
-## 输出示例
-
-### basic_usage.py
-
-```
-1. 搜索基金
-  110011: 易方达中小盘混合 (混合型-偏股)
-  110006: 易方达货币A (货币型-普通货币)
-  110016: 易方达货币B (货币型-普通货币)
-
-2. 基金基本信息
-  名称: 易方达中小盘混合
-  类型: 混合型-偏股
-  公司: 易方达基金
-  经理: 张坤
-
-3. 最新净值
-  净值: 5.2345 (2026-09-01)
-
-4. 前十大持仓
-       代码      名称     占比
-0   01179  华住集团-S  9.41%
-1  600519    贵州茅台  9.23%
-2   00883  中国海洋石油  8.46%
-```
-
-### investment_advice.py
-
-```
-C3 风险等级投资建议
-📊 投资建议报告
-
-👤 投资者类型: C3 - 平衡型：追求资产增值，接受中等波动
-💰 建议金额: 50,000 元
-
-📈 资产配置建议:
-  股票: 30% | 债券: 55% | 货币: 15%
-  预期年化收益: 5.0% - 9.0%
-...
-```
-
-## 更多用法
-
-查看完整 API 参考：[README.md](../README.md#api-参考)
+- API 参考与已知限制：见仓库根目录 `README.md`
+- 供 AI Agent 加载的 Skill 入口：`skills/fund-toolkit/SKILL.md`
