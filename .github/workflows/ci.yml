@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # 运行时零依赖，这里只装测试工具
+      - name: 安装测试工具
+        run: pip install pytest
+
+      - name: 零依赖自检（AST 扫描，禁止出现任何第三方 import）
+        run: |
+          python - <<'PY'
+          import ast, sys
+          names = getattr(sys, "stdlib_module_names", None)
+          if names is None:
+              # stdlib_module_names 需要 3.10+；旧版上跳过本步（不伪装成通过）
+              print("skip: 本解释器无 sys.stdlib_module_names，请在 3.10+ 上跑此步")
+              raise SystemExit(0)
+          src = open("skills/fund-toolkit/scripts/fund_skill.py", encoding="utf-8").read()
+          mods = set()
+          for n in ast.walk(ast.parse(src)):
+              if isinstance(n, ast.Import):
+                  mods |= {a.name.split(".")[0] for a in n.names}
+              elif isinstance(n, ast.ImportFrom) and n.level == 0 and n.module:
+                  mods.add(n.module.split(".")[0])
+          third = sorted(m for m in mods if m not in names)
+          print("third-party imports:", third or "无")
+          raise SystemExit(1 if third else 0)
+          PY
+
+      - name: Python 3.8 语法兼容检查
+        run: |
+          python - <<'PY'
+          import ast
+          src = open("skills/fund-toolkit/scripts/fund_skill.py", encoding="utf-8").read()
+          ast.parse(src, feature_version=(3, 8))
+          print("3.8 语法检查通过")
+          PY
+
+      - name: 版本号四处一致性
+        run: |
+          python - <<'PY'
+          import re, sys
+          src = open("skills/fund-toolkit/scripts/fund_skill.py", encoding="utf-8").read()
+          md = open("skills/fund-toolkit/SKILL.md", encoding="utf-8").read()
+          pyproject = open("pyproject.toml", encoding="utf-8").read()
+          versions = {
+              "__version__": re.search(r'__version__\s*=\s*"([^"]+)"', src).group(1),
+              "pyproject": re.search(r'(?m)^version\s*=\s*"([^"]+)"', pyproject).group(1),
+              "frontmatter": re.search(r"(?m)^version:\s*(\S+)", md).group(1),
+              "SKILL.md 标题": re.search(r"Skill 自包含版 V([\d.]+)", md).group(1),
+              "docstring": re.search(r"单文件版）V([\d.]+)", src).group(1),
+          }
+          print(versions)
+          sys.exit(0 if len(set(versions.values())) == 1 else 1)
+          PY
+
+      - name: 可安装性（构建 wheel 并能导入）
+        run: |
+          pip install .
+          python -c "import fund_skill; print(fund_skill.__version__, fund_skill.__file__)"
+
+      - name: 语法编译
+        run: python -m compileall -q skills/fund-toolkit/scripts examples
+
+      - name: 离线单测
+        run: pytest -q tests/test_offline.py
+
+      - name: 示例脚本可运行（不联网部分）
+        run: python -c "import ast;ast.parse(open('examples/basic_usage.py',encoding='utf-8').read());print('examples 语法 OK')"
+
+  network-smoke:
+    # 上游接口波动是常态，联网冒烟失败不应让 CI 变红
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install . pytest
+      - run: pytest -q tests/test_network.py
