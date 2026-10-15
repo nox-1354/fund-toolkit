@@ -1,11 +1,14 @@
 """基础使用示例：搜索基金、查净值与持仓、看评分。
+
 零依赖，直接运行即可（无需 pip install）：
     python examples/basic_usage.py
 """
 import os
 import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "..", "skills", "fund-toolkit", "scripts"))
+
 from fund_skill import FundToolkit
 
 tk = FundToolkit()
