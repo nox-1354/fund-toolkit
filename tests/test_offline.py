@@ -289,3 +289,62 @@ def test_report_escapes_and_returns_string_when_no_path():
     import inspect
     src = inspect.getsource(fs.generate_fund_html_report)
     assert "if not output_path:" in src and "return html_doc" in src
+
+
+# --------------------------------------------------------------------------
+# 文档与代码一致性：文档里写到的 API 必须真实存在
+# --------------------------------------------------------------------------
+
+_FILE_EXTS = {"py", "md", "json", "html", "toml", "yml", "yaml", "txt", "cfg", "ini"}
+
+
+def _documented_refs():
+    """从 README / SKILL.md 里抽出所有 tk.xxx / fs.xxx / fund_skill.xxx 引用。"""
+    import re
+    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    refs = set()
+    for rel in ("README.md", "examples/README.md", "skills/fund-toolkit/SKILL.md"):
+        path = os.path.join(root, rel)
+        if not os.path.exists(path):
+            continue
+        text = open(path, encoding="utf-8").read()
+        for prefix, name in re.findall(r"\b(tk|fs|fund_skill)\.([A-Za-z_]\w*)", text):
+            if name in _FILE_EXTS:          # fund_skill.py 这类文件名不算 API 引用
+                continue
+            refs.add((rel, prefix, name))
+    return refs
+
+
+def test_documented_api_references_exist():
+    """文档里写了不存在的 API 是真出过的事故（README 曾写 tk.is_money_fund）。"""
+    missing = []
+    for rel, prefix, name in sorted(_documented_refs()):
+        target = fs.FundToolkit if prefix == "tk" else fs
+        if not hasattr(target, name):
+            missing.append(f"{rel}: {prefix}.{name}")
+    assert not missing, "文档引用了不存在的 API：\n" + "\n".join(missing)
+
+
+def test_documented_signature_matches_code():
+    """文档标注的签名要点：find_similar(target, candidates) 的 target 是单个代码字符串。"""
+    import inspect
+    params = list(inspect.signature(fs.find_similar_funds).parameters)
+    assert params[:2] == ["target", "candidates"]
+    params2 = list(inspect.signature(fs.FundToolkit.find_similar).parameters)
+    assert params2[1:3] == ["target", "candidates"]
+
+
+def test_cached_functions_keep_signature():
+    """被 @_cached 包装的函数必须保留签名，否则 help()/IDE/文档校验都失效。"""
+    import inspect
+    for name in ("get_fund_rank", "get_company_list", "get_bigdata_list",
+                 "get_index_kline", "get_fund_type_table"):
+        sig = str(inspect.signature(getattr(fs, name)))
+        assert "args" not in sig and "kwargs" not in sig, f"{name} 签名丢失: {sig}"
+
+
+def test_facade_covers_documented_helpers():
+    """门面上暴露的辅助方法（文档里用到）。"""
+    tk = fs.FundToolkit()
+    for name in ("is_money_fund", "detect_type", "detect_risk", "get_metrics"):
+        assert callable(getattr(tk, name)), name
