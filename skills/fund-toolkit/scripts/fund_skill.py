@@ -2,7 +2,6 @@
 fund_skill.py — 基金全栈数据工具包（Skill 自包含单文件版）V2.0.0
 
 设计目标
---------
 1. 零本地服务：不再需要 Node.js / TiantianFundApi（原 base_url 依赖已完全移除）
 2. 零第三方数据源库：不再需要 akshare
 3. 零第三方依赖：只用 Python 标准库（urllib 做 HTTP、statistics 做统计、
@@ -14,7 +13,7 @@ fund_skill.py — 基金全栈数据工具包（Skill 自包含单文件版）V2
 静默拿到旧版并给出错误结果。改名后不可能再被抢占。
 
 数据源（全部为天天基金/东方财富公开接口，均免 token，实测可用）
---------------------------------------------------------------
+--------------------------
   搜索          fundsuggest.eastmoney.com/FundSearch/api/FundSearchAPI.ashx
   历史净值      fund.eastmoney.com/pingzhongdata/{code}.js   （单位净值/累计净值/分红）
   全量类型表    fund.eastmoney.com/js/fundcode_search.js     （28065 只 代码/简称/类型）
@@ -44,7 +43,6 @@ fund_skill.py — 基金全栈数据工具包（Skill 自包含单文件版）V2
   · 数据源一次性故障即永久熔断                          -> 冷却式半开熔断
 
 用法
-----
     import sys
     sys.path.insert(0, "<本文件所在目录>")
     from fund_skill import FundToolkit
@@ -102,9 +100,7 @@ def set_log_level(level) -> None:
     logger.setLevel(level)
 
 
-# ---------------------------------------------------------------------------
 # 配置
-# ---------------------------------------------------------------------------
 
 def _env_int(name: str, default: int) -> int:
     raw = os.getenv(name)
@@ -184,9 +180,7 @@ def set_config(config: FundToolkitConfig) -> None:
     _MEMO.clear()                          # 配置变更后失效进程内记忆
 
 
-# ---------------------------------------------------------------------------
 # 异常
-# ---------------------------------------------------------------------------
 
 class FundToolkitError(Exception):
     """本工具包所有异常的基类"""
@@ -204,10 +198,8 @@ class FundDataError(FundToolkitError):
     """上游返回了无法解析的数据"""
 
 
-# ---------------------------------------------------------------------------
 # HTTP 层：标准库 urllib 实现（不依赖 requests）
 #   限流（带锁）+ 异常统一包装 + 重试 + 按数据源冷却熔断
-# ---------------------------------------------------------------------------
 
 _RATE_LOCK = threading.Lock()
 _LAST_CALL = 0.0
@@ -369,9 +361,7 @@ def test_connection(verbose: bool = False) -> bool:
     return ok_all
 
 
-# ---------------------------------------------------------------------------
-# 缓存：JSON 格式（不用 pickle）、稳定 key、只缓存有效结果、原子写
-# ---------------------------------------------------------------------------
+# 缓存：JSON 格式、稳定 key、只缓存有效结果、原子写
 
 def _cache_path(key: str) -> Path:
     digest = hashlib.sha1(key.encode("utf-8")).hexdigest()
@@ -405,7 +395,7 @@ def _cached(ttl_hours: Optional[float] = None, key_prefix: str = ""):
 
             # 进程内记忆：像类型表（2.4MB / 2.8 万条）这种大表会被 filter_funds
             # 之类的循环按行调用，只靠磁盘缓存会导致每次调用都重新读盘+解析
-            # —— 实测把 2 万行的筛选拖到 480 秒。
+            # 实测把 2 万行的筛选拖到 480 秒。
             memo = _MEMO.get(key)
             if memo is not None and time.time() - memo[0] < ttl * 3600:
                 return memo[1]
@@ -479,9 +469,7 @@ def clear_cache(pattern: Optional[str] = None) -> int:
     return count
 
 
-# ---------------------------------------------------------------------------
 # Layer 0：基础工具
-# ---------------------------------------------------------------------------
 
 def normalize_fund_code(code: Any) -> str:
     code = str(code).strip()
@@ -528,9 +516,7 @@ def _ts_to_date(ms: Any) -> Optional[str]:
         return None
 
 
-# ---------------------------------------------------------------------------
 # Layer 1：数据源
-# ---------------------------------------------------------------------------
 
 _SEARCH_URL = "https://fundsuggest.eastmoney.com/FundSearch/api/FundSearchAPI.ashx"
 _PZ_URL = "https://fund.eastmoney.com/pingzhongdata/{code}.js"
@@ -787,9 +773,7 @@ def _index_kline_sina(index_code: str, days: int) -> List[Tuple[str, float]]:
     return [x for x in series if x[0] >= cutoff]
 
 
-# ---------------------------------------------------------------------------
 # Layer 2：基金基础信息
-# ---------------------------------------------------------------------------
 
 def get_fund_basic_info(code: str, allow_fuzzy: bool = False) -> Dict[str, Any]:
     """搜索接口的原始条目。默认要求精确命中，避免把股票当成基金返回。"""
@@ -856,9 +840,7 @@ def get_latest_net_value(code: str) -> Optional[Dict[str, Any]]:
     return get_fund_net_value(code)
 
 
-# ---------------------------------------------------------------------------
 # Layer 3：历史净值（单位净值 + 累计净值 + 分红）与复权
-# ---------------------------------------------------------------------------
 
 def get_nav_history(code: str, days: int = 365) -> List[Dict[str, Any]]:
     """历史净值序列（升序）。每项: date, nav(单位净值), acc(累计净值), adj(复权净值), dividend。
@@ -973,9 +955,7 @@ def get_adjusted_series(code: str, days: int = 365) -> List[Dict[str, Any]]:
     return get_nav_history(code, days)
 
 
-# ---------------------------------------------------------------------------
 # Layer 4：基金类型识别（有序优先级，修正 dict 顺序导致指数基金误判）
-# ---------------------------------------------------------------------------
 
 # 关键词按“具体优先”排列，必须是有序列表，不能依赖 dict 顺序
 _TYPE_RULES: List[Tuple[str, Tuple[str, ...]]] = [
@@ -1069,9 +1049,7 @@ def detect_fund_risk(code: str) -> str:
     return FUND_TYPE_RISK.get(detect_fund_type(code), "R3")
 
 
-# ---------------------------------------------------------------------------
 # Layer 5：指标计算（纯 Python，无 numpy/pandas）
-# ---------------------------------------------------------------------------
 
 def calc_max_drawdown(rows: Sequence[Dict[str, Any]], use_adj: bool = True) -> Dict[str, Any]:
     """最大回撤（基于复权净值）。返回回撤百分比、峰值日、谷底日、是否已修复。"""
@@ -1223,9 +1201,8 @@ def find_similar_funds(target: str, candidates: Sequence[str], days: int = 365,
             "similar": similar, "hedges": hedges, "uncorrelated": low}
 
 
-# ---------------------------------------------------------------------------
 # Layer 6：评分（阈值方向已修正，配置带自检）
-# ---------------------------------------------------------------------------
+
 # 每项: w=权重(收益,风险,性价比,稳定)，r1/r3=区间收益阈值，dd/vol=回撤/波动阈值，
 #       wr=日胜率，nh=创新高占比，cal=卡玛。
 # 约定：r1/r3/wr/nh/cal 越大越好 -> 阈值降序；dd/vol 越小越好 -> 阈值升序。
@@ -1463,9 +1440,7 @@ def _grade(total: float) -> str:
     return "⭐ 不推荐"
 
 
-# ---------------------------------------------------------------------------
-# Layer 7：筛选器（改用全量排行表；收益字段是真实区间收益，不再是“日增长率”）
-# ---------------------------------------------------------------------------
+# Layer 7：筛选器（改用全量排行表；收益字段是真实区间收益）
 
 def filter_funds(keyword: Optional[str] = None, fund_type: Optional[str] = None,
                  min_return: Optional[float] = None, max_return: Optional[float] = None,
@@ -1474,8 +1449,7 @@ def filter_funds(keyword: Optional[str] = None, fund_type: Optional[str] = None,
                  sort_desc: bool = True) -> List[Dict[str, Any]]:
     """基金筛选（本地计算，只有 2 次网络请求：排行表 + 类型表，均已缓存）。
 
-    period: w1/m1/m3/m6/y1/y2/y3/ytd/since/daily —— 收益字段为对应区间的真实收益（%），
-            原实现的 min_return 实际比的是“日增长率”，语义与命名不符。
+    period: w1/m1/m3/m6/y1/y2/y3/ytd/since/daily 收益字段为对应区间的真实收益（%）
     fund_type: 支持上游类型片段（如 "债券型"、"指数型-股票"）或内部类型名（如 "纯债型"、"QDII"）。
     缺失值不参与数值过滤（原实现把缺失当 0.0 参与，会误杀/误选）。
 
@@ -1525,9 +1499,7 @@ _PERIOD_TO_SC = {"w1": "zzf", "m1": "1yzf", "m3": "3yzf", "m6": "6yzf",
                  "ytd": "jnzf", "since": "lnzf", "daily": "rzdf"}
 
 
-# ---------------------------------------------------------------------------
 # Layer 8：定投回测（区间裁剪 + 计划日映射 + XIRR + 分红 + 赎回费）
-# ---------------------------------------------------------------------------
 
 def _plan_dates(start: date, end: date, frequency: str,
                 day_of_month: int = 1, day_of_week: int = 1) -> List[date]:
@@ -1730,9 +1702,7 @@ def calculate_drip(code: str, amount: float = 1000.0, start_date: Optional[str] 
     }
 
 
-# ---------------------------------------------------------------------------
 # Layer 9：投资建议（C1-C5）
-# ---------------------------------------------------------------------------
 
 @dataclass
 class FundRecommendation:
@@ -1927,9 +1897,7 @@ def suggest(risk_level: str, amount: float = 10000, codes: Optional[Sequence[str
     return "\n".join(lines)
 
 
-# ---------------------------------------------------------------------------
 # Layer 10：HTML 可视化报告（转义 + 基准对齐 + 整图替换）
-# ---------------------------------------------------------------------------
 
 def _esc(v: Any) -> str:
     return _html.escape("" if v is None else str(v), quote=True)
@@ -2303,12 +2271,10 @@ var rt;window.addEventListener('resize',function(){{clearTimeout(rt);rt=setTimeo
     return str(out)
 
 
-# ---------------------------------------------------------------------------
 # 统一门面
-# ---------------------------------------------------------------------------
 
 class FundToolkit:
-    """基金工具包统一入口（自包含版：无本地服务、无 akshare）。"""
+    """基金工具包统一入口。"""
 
     def __init__(self, config: Optional[FundToolkitConfig] = None):
         if config:
