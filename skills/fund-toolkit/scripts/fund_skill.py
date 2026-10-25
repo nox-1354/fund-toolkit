@@ -12,7 +12,7 @@ fund_skill.py — 基金全栈数据工具包（Skill 自包含单文件版）V2
 旧版本（V1.3，评分与复权都有 bug）占用，同名会导致 `import fund_toolkit`
 静默拿到旧版并给出错误结果。改名后不可能再被抢占。
 
-数据源（全部为天天基金/东方财富公开接口，均免 token，实测可用）
+数据源（天天基金 / 东方财富 / 新浪的公开接口，均免 token）
 --------------------------
   搜索          fundsuggest.eastmoney.com/FundSearch/api/FundSearchAPI.ashx
   历史净值      fund.eastmoney.com/pingzhongdata/{code}.js   （单位净值/累计净值/分红）
@@ -21,7 +21,7 @@ fund_skill.py — 基金全栈数据工具包（Skill 自包含单文件版）V2
   基金公司      fundmobapi.eastmoney.com/FundMApi/FundCompanyBaseList.ashx （215 家）
   大数据榜单    appconfig2.1234567.com.cn/config/BigDataList （14 个榜单，替代主题榜单）
   持仓          fundf10.eastmoney.com/FundArchivesDatas.aspx （页面含两张表=本季/上季）
-  指数K线       push2his.eastmoney.com/api/qt/stock/kline/get （报告基准）
+  指数K线       主 money.finance.sina.com.cn；备 push2his.eastmoney.com
 
 已按代码审查结论修正的问题
 --------------------------
