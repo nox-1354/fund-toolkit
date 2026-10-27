@@ -16,6 +16,11 @@
   <a href="https://github.com/nox-1354/fund-toolkit"><img src="https://img.shields.io/github/stars/nox-1354/fund-toolkit?style=social" alt="Stars"></a>
 </p>
 
+<p align="center">
+  <b>📖 <a href="https://picayune-sole-109.notion.site/fund-toolkit-3cfa5738c643809099b5d37e59fb9270">完整演示与常见问题</a></b>
+  —— 从拿到代码到生成报告的逐步演示、每个功能的口径说明，以及开发过程中踩过的坑
+</p>
+
 ---
 
 ## 功能一览
@@ -32,9 +37,35 @@
 | 投资建议 | C1-C5 风险等级匹配 + 大类资产配置建议 |
 | 可视化 | 交互式 HTML 单基金报告与多基金对比报告 |
 
+## 获取代码
+
+两种方式拿到的是同一份代码，后续步骤完全一样。
+
+```bash
+# 方式一：git clone（需要能访问 github.com）
+git clone https://github.com/nox-1354/fund-toolkit.git
+cd fund-toolkit
+```
+
+```bash
+# 方式二：下载 ZIP（github.com 不通时用这个）
+curl.exe -L -o ft.zip https://codeload.github.com/nox-1354/fund-toolkit/zip/refs/heads/main
+tar -xf ft.zip
+cd fund-toolkit-main
+```
+
+`curl.exe` 写全名是因为 PowerShell 里 `curl` 是 `Invoke-WebRequest` 的别名；macOS / Linux 用 `curl` 即可。
+`tar` 是 Windows 10 1803 以上自带的，不需要额外装解压软件。
+
+> **网络说明**
+>
+> `git clone` 和 `pip install git+https://...` 都依赖 `github.com:443`。部分网络环境下这两条会报
+> `Failed to connect to github.com:443`，**这不是仓库的问题**，也不要反复重试。
+> 改用上面的 ZIP 方式获取源码，或直接安装 Release 里的 wheel（见下）。
+
 ## 安装与引入
 
-**用法一：作为 AI Skill（推荐）** —— 把 `skills/fund-toolkit/` 整个目录放进你的技能目录：
+**用法一：作为 AI Skill（推荐）** —— 把 `skills/fund-toolkit/` 整个目录放进您的技能目录：
 
 ```python
 import sys
@@ -48,6 +79,13 @@ tk = FundToolkit()
 
 ```bash
 pip install git+https://github.com/nox-1354/fund-toolkit.git
+```
+
+如果上面这条因网络失败，改用 Release 里的 wheel（走的是 `objects.githubusercontent.com`，通常不受影响）：
+
+```bash
+curl.exe -L -o fund_toolkit-2.0.0-py3-none-any.whl https://github.com/nox-1354/fund-toolkit/releases/download/v2.0.0/fund_toolkit-2.0.0-py3-none-any.whl
+pip install fund_toolkit-2.0.0-py3-none-any.whl
 ```
 
 ```python
@@ -253,6 +291,8 @@ d["note"]                  # 口径与顺延合并说明
 - **赎回费**按每批持有期分档估算（<7 天 1.5% / 1 年内 0.5% / 2 年内 0.25% / 以上 0）
 - 管理费、托管费、销售服务费未计入
 
+> 模块级函数名为 `calculate_drip`，门面方法为 `tk.drip(...)`，两者等价。
+
 ### 投资建议
 
 它将按C1-C5匹配风险等级，为您给出大类资产配置与候选基金：
@@ -300,6 +340,9 @@ html = tk.generate_report("110011")     # 不传路径则直接返回 HTML 字�
 tk.generate_report("110011", benchmark_code="000905", output_path="r.html")
 ```
 
+> 报告的样式与数据内联在文件里，但图表库 ECharts 从 CDN 加载，**首次打开需要联网**；
+> 断网时页面结构与数字正常，图表区域为空。
+
 ### 其他
 
 ```python
@@ -313,7 +356,7 @@ tk.clear_cache()            # 清缓存，返回删除的文件数
 
 ## 数据源
 
-全部为天天基金/东方财富公开接口，**均不需要 token**：
+全部为天天基金/东方财富/新浪的公开接口，**均不需要 token**：
 
 | 数据 | 接口 |
 |---|---|
@@ -333,10 +376,17 @@ tk.clear_cache()            # 清缓存，返回删除的文件数
 1. **R1-R5 是按基金类型推断的风险等级**，不是基金合同约定的正式风险等级。正式评级以销售机构的风险测评结果为准。
 2. **C4/C5 的候选可能重叠**（原因见上文投资建议一节）。
 3. **持仓两期披露口径不同**（季报前十大 vs 半年报全部），直接相减会产生虚假"新增"。
-4. **指数接口主源是新浪**：`push2his.eastmoney.com` 在部分网络/代理环境下会被稳定拦截，故仅作兜底；
+4. **货币基金不使用净值口径**：单位净值恒为 1，收益按「每万份收益 / 7 日年化」计算，评分走独立分支。
+5. **指数接口主源是新浪**：`push2his.eastmoney.com` 在部分网络/代理环境下会被稳定拦截，故仅作兜底；
    两源都不通时报告降级为无基准曲线，不会中断。
-5. **费率是近似**：赎回费按分档估算，管理费/托管费/销售服务费未计入。
-6. **历史业绩不代表未来表现**；本工具不构成投资建议，输出内含免责声明。
+6. **费率是近似**：赎回费按分档估算，管理费/托管费/销售服务费未计入。
+7. **类型归一的顺序偏差**：`纯债型` 的关键词包含「债券型」，且它排在 `偏债混合型` 之前，
+   因此上游类型为 `债券型-混合一级 / 二级` 的一级、二级债基会被归为 `纯债型`，
+   `偏债混合型` 规则里的「混合一级 / 二级」实际不会生效。这类基金波动高于纯债，
+   用纯债阈值评分会偏低。修法有两条（把 `偏债混合型` 提前，或把「债券型」拆细），目前尚未改动。
+8. **收益能力阈值未随区间缩放**：该维度用的是区间总收益，对比的却是按一年期设计的阈值，
+   `days` 明显小于 365 时（如 90 天）会系统性偏低。目前只在窗口不足半年时跳过「年化收益」的计算。
+9. **历史业绩不代表未来表现**；本工具不构成投资建议，输出内含免责声明。
 
 ## 性能参考
 
@@ -371,15 +421,24 @@ fund-toolkit/
 ## 开发
 
 ```bash
-pip install -e ".[dev]"
-pytest -q tests/test_offline.py      # 不需要网络
-pytest -q tests/test_network.py      # 需要网络
+python -m pip install -e ".[dev]"
+python -m pytest -q tests/test_offline.py      # 不需要网络
+python -m pytest -q tests/test_network.py      # 需要网络
 ```
+
+> 为什么用 `python -m pytest` 而不是直接敲 `pytest`：Windows 上（尤其 Microsoft Store 版 Python）
+> pytest 的启动器常常不在 `PATH` 里，直接敲会提示"不是内部或外部命令"。
+> `python -m pytest` 用当前解释器加载模块，任何平台都一样；`pip` 同理。
 
 ## 版本历史与升级
 
 各版本变更、2.0.0 相对 1.3.0 的破坏性变更与已修复问题清单，见 [CHANGELOG.md](CHANGELOG.md)。
 旧版代码可通过标签取用：`git checkout v1.3.0`。
+
+## 相关链接
+
+- **完整演示与常见问题**：[fund-toolkit 项目专栏](https://picayune-sole-109.notion.site/fund-toolkit-3cfa5738c643809099b5d37e59fb9270)
+  —— 逐步演示、口径说明、架构与关键代码、开发过程中踩过的坑
 
 ## 致谢
 
@@ -392,3 +451,13 @@ pytest -q tests/test_network.py      # 需要网络
 ## License
 
 MIT License · Copyright (c) 2026 NOX-1354
+
+---
+
+<p align="center">
+  <sub>
+    <a href="https://picayune-sole-109.notion.site/NOX-0c609d3f15c74948925a3c4ca5350a52">
+      🏠 NOX 的工作间 · 更多项目与作品
+    </a>
+  </sub>
+</p>
