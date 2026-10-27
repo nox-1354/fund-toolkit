@@ -10,6 +10,9 @@ python examples/investment_advice.py
 python examples/filter_and_correlate.py
 ```
 
+## 前提条件
+> Windows 下的命令用 `python`；macOS / Linux 一般用 `python3`。
+
 ## 各示例演示什么
 
 ### `basic_usage.py` — 单只基金的完整调研
